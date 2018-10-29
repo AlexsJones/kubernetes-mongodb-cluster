@@ -1,0 +1,100 @@
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: mongod
+  namespace: mongodb
+  labels:
+    app: mongodb
+    component: mongodb
+    role: services
+spec:
+  serviceName: mongodb
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: mongodb
+        component: mongodb
+        role: services
+    spec:
+      serviceAccount: kubernetes-mongodb-service-account
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mongo-sidecar
+        image: cvallance/mongo-k8s-sidecar
+        env:
+        - name: MONGO_SIDECAR_POD_LABELS
+          value: "app=mongodb,role=services,component=mongodb"
+        - name: MONGODB_USERNAME
+          value: "root"
+        - name: MONGODB_PASSWORD
+          value: "root"
+        - name: MONGO_SIDECAR_SLEEP_SECONDS
+          value: "10"
+        - name: KUBERNETES_MONGO_SERVICE_NAME
+          value: "mongodb"
+        - name: MONGO_SSL_ENABLED
+          value: 'true'
+        - name: MONGO_SSL_ALLOW_INVALID_CERTIFICATES
+          value: "true"
+        - name: MONGO_SSL_ALLOW_INVALID_HOSTNAMES
+          value: "true"
+      - name: mongod
+        image: mongo
+        args:
+          - "mongod"
+          - "--wiredTigerCacheSizeGB"
+          - "1.5"
+          - "--bind_ip"
+          - "0.0.0.0"
+          - "--replSet"
+          - "MainRepSet"
+          - "--smallfiles"
+          - "--noprealloc"
+          - "--sslMode"
+          - "preferSSL"
+          - "--sslPEMKeyFile"
+          - "/etc/mongodb-secret/mongodb.pem"
+          - "--sslAllowConnectionsWithoutCertificates"
+          - "--sslAllowInvalidCertificates"
+          - "--sslAllowInvalidHostnames"
+          - "--setParameter"
+          - "authenticationMechanisms=SCRAM-SHA-1"
+        resources:
+          requests:
+            memory: "200Mi"
+            cpu: "0.2m"
+          limits:
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: "root"
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: "root"
+        ports:
+        - name: mongo
+          containerPort: 27017
+        volumeMounts:
+        - name: mongodb-secret
+          mountPath: /etc/mongodb-secret/mongodb.pem
+          subPath: mongodb.pem
+        - name: data
+          mountPath: /data/db
+      volumes:
+      - name: mongodb-secret
+        secret:
+          secretName: mongodb-secret
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      labels:
+        app: volume
+        component: mongodb
+        role: services
+    spec:
+      accessModes:
+      - "ReadWriteOnce"
+      storageClassName: standard
+      resources:
+        requests:
+          storage: 1Gi

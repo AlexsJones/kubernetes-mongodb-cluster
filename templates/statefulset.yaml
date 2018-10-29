@@ -1,0 +1,126 @@
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: mongod
+  namespace: {{.namespace}}
+  labels:
+    app: mongodb
+    component: mongodb
+    role: services
+spec:
+  serviceName: mongodb
+  replicas: {{ .replica }}
+  template:
+    metadata:
+      labels:
+        app: mongodb
+        component: mongodb
+        role: services
+    spec:
+      serviceAccount: kubernetes-mongodb-service-account
+{{- if not .dev }}
+{{- if .affinity_key }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: {{.affinity_key}}
+                  operator: In
+                  values:
+                  - {{.affinity_selector}}
+              topologyKey: kubernetes.io/hostname
+{{- end }}
+{{- end }}
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mongo-sidecar
+        image: cvallance/mongo-k8s-sidecar
+        env:
+        - name: MONGO_SIDECAR_POD_LABELS
+          value: "app=mongodb,role=services,component=mongodb"
+        - name: MONGODB_USERNAME
+          value: "{{.mongodb.rootusername}}"
+        - name: MONGODB_PASSWORD
+          value: "{{.mongodb.rootpassword}}"
+        - name: MONGO_SIDECAR_SLEEP_SECONDS
+          value: "10"
+        - name: KUBERNETES_MONGO_SERVICE_NAME
+          value: "mongodb"
+        - name: MONGO_SSL_ENABLED
+          value: 'true'
+        - name: MONGO_SSL_ALLOW_INVALID_CERTIFICATES
+          value: "true"
+        - name: MONGO_SSL_ALLOW_INVALID_HOSTNAMES
+          value: "true"
+      - name: mongod
+        image: {{.image}}
+        args:
+          - "mongod"
+          - "--wiredTigerCacheSizeGB"
+          - "1.5"
+          - "--bind_ip"
+          - "0.0.0.0"
+          - "--replSet"
+          - "{{.mongodb.replsetname}}"
+          - "--smallfiles"
+          - "--noprealloc"
+          - "--sslMode"
+          - "preferSSL"
+          - "--sslPEMKeyFile"
+          - "/etc/mongodb-secret/mongodb.pem"
+          - "--sslAllowConnectionsWithoutCertificates"
+          - "--sslAllowInvalidCertificates"
+          - "--sslAllowInvalidHostnames"
+          - "--setParameter"
+          - "authenticationMechanisms=SCRAM-SHA-1"
+        resources:
+          requests:
+{{- if ne .resources.requests.memory "" }}
+            memory: "{{ .resources.requests.memory }}"
+{{- end }}
+{{- if ne .resources.requests.cpu "" }}
+            cpu: "{{ .resources.requests.cpu }}"
+{{- end }}
+          limits:
+{{- if ne .resources.limits.memory "" }}
+            memory: "{{ .resources.limits.memory }}"
+{{- end }}
+{{- if ne .resources.limits.cpu "" }}
+            cpu: "{{ .resources.limits.cpu }}"
+{{- end }}
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: "{{.mongodb.rootusername}}"
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: "{{.mongodb.rootpassword}}"
+        ports:
+        - name: mongo
+          containerPort: 27017
+        volumeMounts:
+        - name: mongodb-secret
+          mountPath: /etc/mongodb-secret/mongodb.pem
+          subPath: mongodb.pem
+        - name: data
+          mountPath: /data/db
+      volumes:
+      - name: mongodb-secret
+        secret:
+          secretName: mongodb-secret
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      labels:
+        app: volume
+        component: mongodb
+        role: services
+    spec:
+      accessModes:
+      - "ReadWriteOnce"
+      storageClassName: {{.storage_class}}
+      resources:
+        requests:
+          storage: {{.storage_size}}
