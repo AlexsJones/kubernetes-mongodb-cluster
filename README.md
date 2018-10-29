@@ -1,11 +1,11 @@
 # kubernetes-mongodb-cluster
 
-A scalable cluster for SSL secured mongodb.
+A scalable kubernetes cluster for SSL secured mongodb.
 
 Built on the great work of others, brought together in k8s manifests.
 
 - Statefulset
-- Service discovery with sidecars (https://github.com/cvallance/mongo-k8s-sidecar) _I have made minimal changes to this cool guys code_
+- Service discovery with sidecars (https://github.com/cvallance/mongo-k8s-sidecar) _Very useful module_
 - Supports auto scaling
 - Example built with generated SSL cert
 
