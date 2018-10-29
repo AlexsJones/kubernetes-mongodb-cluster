@@ -30,3 +30,5 @@ kubectl create -f deployment/
 ## Configuration
 
 Within `templates/statefulset.yaml` the mongod options can be changed to suit requirements.
+
+Also for some of the dynamic yaml configuration based on environment look at `environments/dev.yaml` creating your own where applicable.
