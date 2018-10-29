@@ -1,5 +1,5 @@
 echo 'Generating self signed certificate'
-KEY="Test1234"
+KEY=$1
 openssl genrsa -des3 -passout pass:$KEY -out server.pass.key 2048
 openssl rsa -passin pass:$KEY -in server.pass.key -out server.key
 rm server.pass.key
