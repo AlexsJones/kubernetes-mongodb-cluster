@@ -48,7 +48,7 @@ spec:
           mountPath: /mongotemp
       containers:
       - name: mongo-sidecar
-        image: cvallance/mongo-k8s-sidecar
+        image: tibbar/mongo-k8s-sidecar
         env:
         - name: MONGO_SIDECAR_POD_LABELS
           value: "app=mongodb,role=services,component=mongodb"
