@@ -8,12 +8,8 @@ metadata:
     app: mongodb
     component: mongodb
     role: services
-  annotations:
-      cloud.google.com/load-balancer-type: "Internal"
-
 spec:
-  type: LoadBalancer
-  sessionAffinity: ClientIP
+  clusterIP: None
   ports:
   - name: mongo
     port: 27017
