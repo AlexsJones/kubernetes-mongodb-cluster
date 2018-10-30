@@ -32,6 +32,7 @@ Influenced and inspired by:
 ## Get me started
 
 ```
+kubectl create ns mongodb
 ./build_environment.sh dev
 ./generate_pem.sh <SomePassword>
 kubectl apply -f deployment/
