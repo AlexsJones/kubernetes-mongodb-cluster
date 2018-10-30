@@ -2,6 +2,13 @@
 
 A scalable kubernetes cluster for SSL secured mongodb.
 
+![issues](https://img.shields.io/github/issues/AlexsJones/kubernetes-mongodb-cluster.svg)
+![forks](https://img.shields.io/github/forks/AlexsJones/kubernetes-mongodb-cluster.svg)
+![stars](https://img.shields.io/github/stars/AlexsJones/kubernetes-mongodb-cluster.svg)
+![license](https://img.shields.io/github/license/AlexsJones/kubernetes-mongodb-cluster.svg)
+![twitter](https://img.shields.io/twitter/url/https/github.com/AlexsJones/kubernetes-mongodb-cluster.svg?style=social)
+
+
 Built on the great work of others, brought together in k8s manifests.
 
 - Statefulset
