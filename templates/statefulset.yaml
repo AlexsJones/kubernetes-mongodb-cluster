@@ -36,6 +36,16 @@ spec:
 {{- end }}
 {{- end }}
       terminationGracePeriodSeconds: 10
+      initContainers:
+      - name: copy-ro-scripts
+        image: busybox
+        command: ['sh', '-c', 'cp /tmp/rs-key /mongotemp/rs-key && chmod 0400 /mongotemp/rs-key && chown 999:999 /mongotemp/rs-key']
+        volumeMounts:
+        - name: mongodb-rs-key
+          mountPath: /tmp/rs-key
+          subPath: rs-key
+        - name: tempvol
+          mountPath: /mongotemp
       containers:
       - name: mongo-sidecar
         image: cvallance/mongo-k8s-sidecar
@@ -46,8 +56,6 @@ spec:
           value: "{{.mongodb.rootusername}}"
         - name: MONGODB_PASSWORD
           value: "{{.mongodb.rootpassword}}"
-        - name: MONGO_SIDECAR_SLEEP_SECONDS
-          value: "10"
         - name: KUBERNETES_MONGO_SERVICE_NAME
           value: "mongodb"
         - name: MONGO_SSL_ENABLED
@@ -56,6 +64,8 @@ spec:
           value: "true"
         - name: MONGO_SSL_ALLOW_INVALID_HOSTNAMES
           value: "true"
+        - name: MONGODB_DATABASE
+          value: "admin"
       - name: mongod
         image: {{.image}}
         args:
@@ -68,6 +78,7 @@ spec:
           - "{{.mongodb.replsetname}}"
           - "--smallfiles"
           - "--noprealloc"
+          - "--auth"
           - "--sslMode"
           - "preferSSL"
           - "--sslPEMKeyFile"
@@ -75,8 +86,8 @@ spec:
           - "--sslAllowConnectionsWithoutCertificates"
           - "--sslAllowInvalidCertificates"
           - "--sslAllowInvalidHostnames"
-          - "--setParameter"
-          - "authenticationMechanisms=SCRAM-SHA-1"
+          - "--config"
+          - "/etc/mongodb-config/mongodb.conf"
         resources:
           requests:
 {{- if ne .resources.requests.memory "" }}
@@ -104,12 +115,25 @@ spec:
         - name: mongodb-secret
           mountPath: /etc/mongodb-secret/mongodb.pem
           subPath: mongodb.pem
+        - name: mongodb-config
+          mountPath: /etc/mongodb-config/mongodb.conf
+          subPath: mongodb.conf
+        - name: tempvol
+          mountPath: /mongotemp
         - name: data
           mountPath: /data/db
       volumes:
+      - name: tempvol
+        emptyDir: {}
       - name: mongodb-secret
         secret:
           secretName: mongodb-secret
+      - name: mongodb-rs-key
+        secret:
+          secretName: mongodb-rs-key
+      - name: mongodb-config
+        configMap:
+          name: mongodb-config
   volumeClaimTemplates:
   - metadata:
       name: data

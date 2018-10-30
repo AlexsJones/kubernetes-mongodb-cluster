@@ -1,0 +1,22 @@
+kind: ConfigMap
+metadata:
+  name: mongodb-config
+  namespace: mongodb
+apiVersion: v1
+data:
+  mongodb.conf: |
+    # mongod.conf
+    # for documentation of all options, see:
+    #   http://docs.mongodb.org/manual/reference/configuration-options/
+    # Storage
+    storage:
+      journal:
+        enabled: true
+      engine: wiredTiger
+      dbPath: /data/db
+      wiredTiger:
+        collectionConfig:
+          blockCompressor: none
+    # Security
+    security:
+      keyFile: /mongotemp/rs-key

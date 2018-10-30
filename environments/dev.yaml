@@ -5,7 +5,7 @@ replica: "3"
 affinity_key: "app"
 affinity_selector: "mongodb"
 storage_size: "1Gi"
-storage_class: "standard"
+storage_class: "fast-retain"
 resources:
   requests:
     cpu: "0.2m"

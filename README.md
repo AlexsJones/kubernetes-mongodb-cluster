@@ -5,11 +5,15 @@ A scalable kubernetes cluster for SSL secured mongodb.
 Built on the great work of others, brought together in k8s manifests.
 
 - Statefulset
-- Service discovery with sidecars (https://github.com/cvallance/mongo-k8s-sidecar) _Very useful module_
+- Configmap for mongo.conf, boot options and per env tuning
+- Service discovery with sidecars
 - Supports auto scaling
 - Example built with generated SSL cert
 
-_If you believe it, it will come true!_
+Influenced and inspired by:
+- https://github.com/MichaelScript/kubernetes-mongodb
+- https://github.com/cvallance/mongo-k8s-sidecar
+- My own experience with trying to implement this.. https://kubernetes.io/blog/2017/01/running-mongodb-on-kubernetes-with-statefulsets/
 
 ## Dependencies
 
@@ -24,11 +28,12 @@ _If you believe it, it will come true!_
 ```
 ./build_environment.sh dev
 ./generate_pem.sh <SomePassword>
-kubectl create -f deployment/
+kubectl apply -f deployment/
 ```
 
 ## Configuration
+- Primary mongodb configuration is within `templates/configmap.yaml` for wiredtiger settings and log paths
 
-Within `templates/statefulset.yaml` the mongod options can be changed to suit requirements.
+- Within `templates/statefulset.yaml` the mongod boot options can be changed to suit requirements.
 
-Also for some of the dynamic yaml configuration based on environment look at `environments/dev.yaml` creating your own where applicable.
+- Also for some of the dynamic yaml configuration based on environment look at `environments/dev.yaml` creating your own where applicable.
