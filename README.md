@@ -20,8 +20,7 @@ Influenced and inspired by:
 ```
 - golang
 - go get github.com/AlexsJones/vortex
-
-
+- google cloud platform (for a few annotations e.g. load balancer and pvc)
 ```
 ## Get me started
 
