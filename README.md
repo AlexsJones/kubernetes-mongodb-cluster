@@ -35,19 +35,27 @@ Influenced and inspired by:
 kubectl create ns mongodb
 ./build_environment.sh dev
 ./generate_pem.sh <SomePassword>
-kubectl apply -f deployment/
+kubectl apply -f deployment/mongo
 ```
 
 ## Test it works
+
+The mongo-job runs the following command
 
 ```
 kubectl exec -it mongod-0 -c mongod -- mongo --host 127.0.0.1:27017 --authenticationDatabase admin --username root --password root --eval "rs.status()"
 ```
 
-## Configuration
-- Primary mongodb configuration is within `templates/configmap.yaml` for wiredtiger settings and log paths
+Execute the job with
 
-- Within `templates/statefulset.yaml` the mongod boot options can be changed to suit requirements.
+```
+kubectl apply -f deployment/utils/job.yaml
+```
+
+## Configuration
+- Primary mongodb configuration is within `templates/mongo/configmap.yaml` for wiredtiger settings and log paths
+
+- Within `templates/mongo/statefulset.yaml` the mongod boot options can be changed to suit requirements.
 
 - Also for some of the dynamic yaml configuration based on environment look at `environments/dev.yaml` creating your own where applicable.
 
