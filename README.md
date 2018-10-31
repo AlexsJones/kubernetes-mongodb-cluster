@@ -38,9 +38,26 @@ kubectl create ns mongodb
 kubectl apply -f deployment/
 ```
 
+## Test it works
+
+```
+kubectl exec -it mongod-0 -c mongod -- mongo --host 127.0.0.1:27017 --authenticationDatabase admin --username root --password root --eval "rs.status()"
+```
+
 ## Configuration
 - Primary mongodb configuration is within `templates/configmap.yaml` for wiredtiger settings and log paths
 
 - Within `templates/statefulset.yaml` the mongod boot options can be changed to suit requirements.
 
 - Also for some of the dynamic yaml configuration based on environment look at `environments/dev.yaml` creating your own where applicable.
+
+
+### Changing User/password
+
+```
+mongodb:
+  rootusername: "root"
+  rootpassword: "root"
+```
+
+Can be changed in the environment folder file
