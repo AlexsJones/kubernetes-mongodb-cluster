@@ -69,3 +69,15 @@ mongodb:
 ```
 
 Can be changed in the environment folder file
+
+
+### Restoring a database backup
+
+Since 1.10 you can now upload mongodumps into configmaps or in `utils/pod-mongorestore.yaml` you can just use `kubectl cp`
+then execute the backup file
+
+
+## Using UI tools
+
+Tools such as mongochef/robochef can be used with their direct connection mode on localhost:27017 and
+`kubectl port-forward mongod-0 27017:27017`
