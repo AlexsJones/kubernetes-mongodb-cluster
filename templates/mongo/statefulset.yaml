@@ -59,7 +59,7 @@ spec:
         - name: KUBERNETES_MONGO_SERVICE_NAME
           value: "mongodb"
         - name: MONGO_SSL_ENABLED
-          value: 'true'
+          value: "{{.mongosidecar.sslenabled}}"
         - name: MONGO_SSL_ALLOW_INVALID_CERTIFICATES
           value: "true"
         - name: MONGO_SSL_ALLOW_INVALID_HOSTNAMES
@@ -80,7 +80,7 @@ spec:
           - "--noprealloc"
           - "--auth"
           - "--sslMode"
-          - "preferSSL"
+          - "{{.mongodb.sslmode}}"
           - "--sslPEMKeyFile"
           - "/etc/mongodb-secret/mongodb.pem"
           - "--sslAllowConnectionsWithoutCertificates"
