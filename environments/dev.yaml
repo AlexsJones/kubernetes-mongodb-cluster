@@ -17,6 +17,6 @@ mongodb:
   rootusername: "root"
   rootpassword: "root"
   replsetname: "MainRepSet"
-  sslmode: "allowSSL"
+  sslmode: "preferSSL"
 mongosidecar:
-  sslenabled: "false"
+  sslenabled: "true"
