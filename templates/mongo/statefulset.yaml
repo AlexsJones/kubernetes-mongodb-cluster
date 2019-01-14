@@ -9,6 +9,11 @@ metadata:
     component: mongodb
     role: services
 spec:
+  selector:
+    matchLabels:
+      app: mongodb
+      component: mongodb
+      role: services
   serviceName: mongodb
   replicas: {{ .replica }}
   template:
