@@ -71,6 +71,8 @@ spec:
           value: "true"
         - name: MONGODB_DATABASE
           value: "admin"
+        - name: KUBE_NAMESPACE
+          value: "{{.namespace}}"
       - name: mongod
         image: {{.image}}
         args:
