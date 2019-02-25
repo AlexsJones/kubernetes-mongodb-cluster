@@ -1,0 +1,40 @@
+# Usage:
+# vortex --template ./environments/default.yaml --output temporalenv \
+#   --set="namespace=mymongo" \
+#   --set="affinitykey=node-type" \
+#   --set="affinityselector=mongodb" \
+#   --set="storageclass=fast-retain" \
+#   --set="image=mongo:4" \
+#   --set="storagesize=500Gi" \
+#   --set="cpurequest=1" \
+#   --set="memoryrequest=200Mi" \
+#   --set="cpulimit=2" \
+#   --set="memorylimit=500Mi" \
+#   --set="rootuser=root" \
+#   --set="rootpwd=R0!ot" \
+#   --set="replicaset=MyReplSet" \
+#   --set="sslmode=allowSSL" \
+#   --set="sslenabled=false"
+
+dev: "true"
+image: "{{.image}}"
+namespace: "{{.namespace}}"
+replica: "3"
+affinity_key: "{{.affinitykey}}"
+affinity_selector: "{{.affinityselector}}"
+storage_size: "{{.storagesize}}"
+storage_class: "{{.storageclass}}"
+resources:
+  requests:
+    cpu: "{{.cpurequest}}"
+    memory: "{{.memoryrequest}}"
+  limits:
+    cpu: "{{.cpulimit}}"
+    memory: "{{.memorylimit}}"
+mongodb:
+  rootusername: "{{.rootuser}}"
+  rootpassword: "{{.rootpwd}}"
+  replsetname: "{{.replicaset}}"
+  sslmode: "{{.sslmode}}"
+mongosidecar:
+  sslenabled: "{{.sslenabled}}"
