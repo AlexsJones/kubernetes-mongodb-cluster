@@ -119,6 +119,7 @@ spec:
                 - SYS_ADMIN
 {{- end }}
         image: {{.image}}
+        imagePullPolicy: IfNotPresent
         command:
           - /bin/bash
           - -c
@@ -129,9 +130,7 @@ spec:
             curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - > /dev/null;
             apt-get update && apt-get install --yes gcsfuse fuse;
 {{- end }}
-            mongod --wiredTigerCacheSizeGB 1.5 --bind_ip 0.0.0.0 --replSet {{.mongodb.replsetname}} \
-            --smallfiles --noprealloc --auth --sslMode {{.mongodb.sslmode}} --sslPEMKeyFile /etc/mongodb-secret/mongodb.pem \
-            --sslAllowConnectionsWithoutCertificates --sslAllowInvalidCertificates --config /etc/mongodb-config/mongodb.conf
+            mongod --wiredTigerCacheSizeGB 1.5 --bind_ip 0.0.0.0 --replSet {{.mongodb.replsetname}} --smallfiles --noprealloc --auth --sslMode {{.mongodb.sslmode}} --sslPEMKeyFile /etc/mongodb-secret/mongodb.pem --sslAllowConnectionsWithoutCertificates --sslAllowInvalidCertificates --config /etc/mongodb-config/mongodb.conf
         resources:
           requests:
 {{- if ne .resources.requests.memory "" }}
