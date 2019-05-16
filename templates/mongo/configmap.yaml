@@ -4,6 +4,16 @@ metadata:
   namespace: mongodb
 apiVersion: v1
 data:
+  configure_backups.sh: |
+    MONGO_IS_PRIMARY=`mongo localhost:27017 --quiet --eval 'db.isMaster().ismaster'`;
+    if [ "${MONGO_IS_PRIMARY}" == "true" ]; then
+      echo "No backups will be taken against a primary node, exiting!"
+      exit 0;
+    fi
+    D=$(/bin/date -u "+%Y%m%d-%H%M%S")
+    mkdir -p /mnt/bucket/$D
+    mkdir -p /mnt/bucket/$D/$HOSTNAME
+    rsync -a --ignore-missing-args --delete-during /data/db /mnt/bucket/$D/$HOSTNAME
   mongodb.conf: |
     # mongod.conf
     # for documentation of all options, see:

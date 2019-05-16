@@ -62,33 +62,6 @@ spec:
         - name: tempvol
           mountPath: /mongotemp
       containers:
-# {{- if .with_gcs_backups }}
-#       - name: mongo-fuse
-#         securityContext:
-#             privileged: true
-#             capabilities:
-#               add:
-#                 - SYS_ADMIN
-#         image: tibbar/gcsfuse:latest
-#         imagePullPolicy: Always
-#         command:
-#           - "bin/bash"
-#           - "-c"
-#           - "gcsfuse -o nonempty,allow_other,rw $STORAGE_BUCKET /mnt/bucket && sleep 3000"
-#         env:
-#         - name: GOOGLE_APPLICATION_CREDENTIALS
-#           value: /etc/google-credentials
-#         - name: STORAGE_BUCKET
-#           value: {{ .gcsfuse.storage_bucket }}
-#         volumeMounts:
-#         - name: google-credentials
-#           mountPath: /etc/google-credentials
-#           subPath: google-credentials
-#         - name: shared-bucket-dir
-#           mountPath: /mnt/bucket
-#         - name: data
-#           mountPath: /data/db
-# {{- end }}
       - name: mongo-sidecar
         image: tibbar/mongo-k8s-sidecar:latest
         env:
@@ -125,10 +98,15 @@ spec:
           - -c
           - >
 {{- if .with_gcs_backups }}
-            apt-get update && apt-get install curl -y;
+            apt-get update && apt-get install rsync curl -y;
             echo "deb http://packages.cloud.google.com/apt gcsfuse-stretch main" > /etc/apt/sources.list.d/gcsfuse.list;
             curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - > /dev/null;
             apt-get update && apt-get install --yes gcsfuse fuse;
+            # Mount folder
+            mkdir -p /mnt/bucket;
+            gcsfuse -o nonempty,allow_other,rw $STORAGE_BUCKET /mnt/bucket"
+            # Create backup as a test
+            /etc/configure_backups.sh &
 {{- end }}
             mongod --wiredTigerCacheSizeGB 1.5 --bind_ip 0.0.0.0 --replSet {{.mongodb.replsetname}} --smallfiles --noprealloc --auth --sslMode {{.mongodb.sslmode}} --sslPEMKeyFile /etc/mongodb-secret/mongodb.pem --sslAllowConnectionsWithoutCertificates --sslAllowInvalidCertificates --config /etc/mongodb-config/mongodb.conf
         resources:
@@ -161,6 +139,9 @@ spec:
         - name: mongo
           containerPort: 27017
         volumeMounts:
+        - name: mongodb-config
+          mountPath: /etc/configure_backups.sh
+          subPath: configure_backups.sh
         - name: mongodb-secret
           mountPath: /etc/mongodb-secret/mongodb.pem
           subPath: mongodb.pem
@@ -189,8 +170,6 @@ spec:
         configMap:
           name: mongodb-config
 {{- if .with_gcs_backups }}
-      - name: shared-bucket-dir
-        emptyDir: {}
       - name: google-credentials
         secret:
           secretName: google-credentials

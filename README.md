@@ -1,6 +1,6 @@
 # kubernetes-mongodb-cluster
 
-A scalable kubernetes cluster for SSL secured mongodb on GKE.
+A scalable kubernetes cluster for SSL secured mongodb on GKE with backups.
 
 ![issues](https://img.shields.io/github/issues/AlexsJones/kubernetes-mongodb-cluster.svg)
 ![forks](https://img.shields.io/github/forks/AlexsJones/kubernetes-mongodb-cluster.svg)
@@ -8,8 +8,6 @@ A scalable kubernetes cluster for SSL secured mongodb on GKE.
 ![license](https://img.shields.io/github/license/AlexsJones/kubernetes-mongodb-cluster.svg)
 ![twitter](https://img.shields.io/twitter/url/https/github.com/AlexsJones/kubernetes-mongodb-cluster.svg?style=social)
 
-
-Built on the great work of others, brought together in k8s manifests.
 
 - GKE local disks
 - Backups with FUSE to Google storage
@@ -19,11 +17,6 @@ Built on the great work of others, brought together in k8s manifests.
 - Service discovery with sidecars
 - Supports auto scaling
 - Example built with generated SSL cert
-
-Influenced and inspired by:
-- https://github.com/MichaelScript/kubernetes-mongodb
-- https://github.com/cvallance/mongo-k8s-sidecar
-- My own experience with trying to implement this.. https://kubernetes.io/blog/2017/01/running-mongodb-on-kubernetes-with-statefulsets/
 
 ## Dependencies
 
@@ -75,6 +68,11 @@ data-mongod-2   Bound    local-pv-69642ae6   368Gi      RWO            local-scs
 
 ```
 
+4.
+
+
+
+
 ## But I don't like GKE and/or I'm on another provider
 
 If you do not wish to use GKE nor local-scsi do the following deployment
@@ -125,3 +123,11 @@ Can be changed in the environment folder file
 
 Tools such as mongochef/robochef can be used with their direct connection mode on localhost:27017 and
 `kubectl port-forward mongod-0 27017:27017`
+
+
+### Creditations
+
+Influenced and inspired by:
+- https://github.com/MichaelScript/kubernetes-mongodb
+- https://github.com/cvallance/mongo-k8s-sidecar
+- My own experience with trying to implement this.. https://kubernetes.io/blog/2017/01/running-mongodb-on-kubernetes-with-statefulsets/
