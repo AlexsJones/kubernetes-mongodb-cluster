@@ -25,18 +25,28 @@ spec:
     spec:
       serviceAccount: kubernetes-mongodb-service-account
 {{- if not .dev }}
-{{- if .affinity_key }}
       affinity:
+{{- if .node_affinity_key }}
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: {{.node_affinity_key}}
+                operator: In
+                values:
+                - {{.node_affinity_selector}}
+{{- end }}
+{{- if .pod_affinity_key }}
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
-                - key: {{.affinity_key}}
+                - key: {{.pod_affinity_key}}
                   operator: In
                   values:
-                  - {{.affinity_selector}}
+                  - {{.pod_affinity_selector}}
               topologyKey: kubernetes.io/hostname
 {{- end }}
 {{- end }}
@@ -52,8 +62,35 @@ spec:
         - name: tempvol
           mountPath: /mongotemp
       containers:
+# {{- if .with_gcs_backups }}
+#       - name: mongo-fuse
+#         securityContext:
+#             privileged: true
+#             capabilities:
+#               add:
+#                 - SYS_ADMIN
+#         image: tibbar/gcsfuse:latest
+#         imagePullPolicy: Always
+#         command:
+#           - "bin/bash"
+#           - "-c"
+#           - "gcsfuse -o nonempty,allow_other,rw $STORAGE_BUCKET /mnt/bucket && sleep 3000"
+#         env:
+#         - name: GOOGLE_APPLICATION_CREDENTIALS
+#           value: /etc/google-credentials
+#         - name: STORAGE_BUCKET
+#           value: {{ .gcsfuse.storage_bucket }}
+#         volumeMounts:
+#         - name: google-credentials
+#           mountPath: /etc/google-credentials
+#           subPath: google-credentials
+#         - name: shared-bucket-dir
+#           mountPath: /mnt/bucket
+#         - name: data
+#           mountPath: /data/db
+# {{- end }}
       - name: mongo-sidecar
-        image: tibbar/mongo-k8s-sidecar
+        image: tibbar/mongo-k8s-sidecar:latest
         env:
         - name: MONGO_SIDECAR_POD_LABELS
           value: "app=mongodb,role=services,component=mongodb"
@@ -74,27 +111,27 @@ spec:
         - name: KUBE_NAMESPACE
           value: "{{.namespace}}"
       - name: mongod
+{{- if .with_gcs_backups }}
+        securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - SYS_ADMIN
+{{- end }}
         image: {{.image}}
-        args:
-          - "mongod"
-          - "--wiredTigerCacheSizeGB"
-          - "1.5"
-          - "--bind_ip"
-          - "0.0.0.0"
-          - "--replSet"
-          - "{{.mongodb.replsetname}}"
-          - "--smallfiles"
-          - "--noprealloc"
-          - "--auth"
-          - "--sslMode"
-          - "{{.mongodb.sslmode}}"
-          - "--sslPEMKeyFile"
-          - "/etc/mongodb-secret/mongodb.pem"
-          - "--sslAllowConnectionsWithoutCertificates"
-          - "--sslAllowInvalidCertificates"
-          - "--sslAllowInvalidHostnames"
-          - "--config"
-          - "/etc/mongodb-config/mongodb.conf"
+        command:
+          - /bin/bash
+          - -c
+          - >
+{{- if .with_gcs_backups }}
+            apt-get update && apt-get install curl -y;
+            echo "deb http://packages.cloud.google.com/apt gcsfuse-stretch main" > /etc/apt/sources.list.d/gcsfuse.list;
+            curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - > /dev/null;
+            apt-get update && apt-get install --yes gcsfuse fuse;
+{{- end }}
+            mongod --wiredTigerCacheSizeGB 1.5 --bind_ip 0.0.0.0 --replSet {{.mongodb.replsetname}} \
+            --smallfiles --noprealloc --auth --sslMode {{.mongodb.sslmode}} --sslPEMKeyFile /etc/mongodb-secret/mongodb.pem \
+            --sslAllowConnectionsWithoutCertificates --sslAllowInvalidCertificates --config /etc/mongodb-config/mongodb.conf
         resources:
           requests:
 {{- if ne .resources.requests.memory "" }}
@@ -111,6 +148,12 @@ spec:
             cpu: "{{ .resources.limits.cpu }}"
 {{- end }}
         env:
+{{- if .with_gcs_backups }}
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /etc/google-credentials
+        - name: STORAGE_BUCKET
+          value: {{ .gcsfuse.storage_bucket }}
+{{- end }}
         - name: MONGO_INITDB_ROOT_USERNAME
           value: "{{.mongodb.rootusername}}"
         - name: MONGO_INITDB_ROOT_PASSWORD
@@ -129,6 +172,11 @@ spec:
           mountPath: /mongotemp
         - name: data
           mountPath: /data/db
+{{- if .with_gcs_backups }}
+        - name: google-credentials
+          mountPath: /etc/google-credentials
+          subPath: google-credentials
+{{- end }}
       volumes:
       - name: tempvol
         emptyDir: {}
@@ -141,6 +189,13 @@ spec:
       - name: mongodb-config
         configMap:
           name: mongodb-config
+{{- if .with_gcs_backups }}
+      - name: shared-bucket-dir
+        emptyDir: {}
+      - name: google-credentials
+        secret:
+          secretName: google-credentials
+{{- end }}
   volumeClaimTemplates:
   - metadata:
       name: data

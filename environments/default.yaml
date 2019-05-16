@@ -20,10 +20,13 @@ dev: "true"
 image: "{{.image}}"
 namespace: "{{.namespace}}"
 replica: "3"
-affinity_key: "{{.affinitykey}}"
-affinity_selector: "{{.affinityselector}}"
+with_affinity: "true"
+pod_affinity_key: "app"
+pod_affinity_selector: "mongodb"
+node_affinity_key: "{{.affinitykey}}"
+node_affinity_selector: "{{.affinityselector}}"
 storage_size: "{{.storagesize}}"
-storage_class: "{{.storageclass}}"
+storage_class: "{{.storageclass}}" #local-scsi can be selected on GKE with the ./templates/gke-storage applied
 resources:
   requests:
     cpu: "{{.cpurequest}}"

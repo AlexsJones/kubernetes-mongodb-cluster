@@ -1,22 +1,23 @@
-image: "mongo"
+image: "mongo:3-stretch"
 namespace: "mongodb"
 replica: "3"
-with_affinity: "false"
-# These wll not apply  -----------------
+with_affinity: "true"
 pod_affinity_key: "app"
 pod_affinity_selector: "mongodb"
 node_affinity_key: "node-type"
 node_affinity_selector: "mongodb"
-# --------------------------------------
-storage_size: "1Gi"
-storage_class: "fast-retain" #local-scsi can be selected on GKE with the ./templates/gke-storage applied
+with_gcs_backups: "true"
+gcsfuse:
+  storage_bucket: mongodb-gcs-backups
+storage_size: "250Gi"
+storage_class: "local-scsi" #local-scsi can be selected on GKE with the ./templates/gke-storage applied
 resources:
   requests:
-    cpu: "0.2m"
-    memory: "200Mi"
+    cpu: "2"
+    memory: "1000Mi"
   limits:
-    cpu: ""
-    memory: ""
+    cpu: "3"
+    memory: "30000Mi"
 mongodb:
   rootusername: "root"
   rootpassword: "root"

@@ -1,3 +1,4 @@
+kubectl create ns mongodb || true
 echo 'Generating self signed certificate'
 KEY=$1
 openssl genrsa -des3 -passout pass:$KEY -out server.pass.key 2048
@@ -15,4 +16,3 @@ openssl rand -base64 741 > rs-key
 chmod 0400 rs-key
 kubectl --namespace=mongodb delete secret mongodb-rs-key || true
 kubectl --namespace=mongodb create secret generic mongodb-rs-key --from-file=rs-key
-rm rs-key
