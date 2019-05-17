@@ -38,7 +38,7 @@ data:
       echo "No backups will be taken against a primary node, exiting!"
       exit 0;
     fi
-    D=$(/bin/date -u "+%Y%m%d-%H%M%S")
+    D=$(/bin/date -u "+%Y%m%d")
     mkdir -p /mnt/bucket/$D
     mkdir -p /mnt/bucket/$D/$HOSTNAME
     rsync -a --progress --ignore-missing-args --delete-during /data/db /mnt/bucket/$D/$HOSTNAME
