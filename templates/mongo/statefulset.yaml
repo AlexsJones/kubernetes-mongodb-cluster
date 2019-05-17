@@ -79,22 +79,31 @@ spec:
           - "mongod"
           - "--wiredTigerCacheSizeGB"
           - "1.5"
-          - "--bind_ip"
-          - "0.0.0.0"
-          - "--replSet"
-          - "{{.mongodb.replsetname}}"
-          - "--smallfiles"
-          - "--noprealloc"
           - "--auth"
-          - "--sslMode"
-          - "{{.mongodb.sslmode}}"
-          - "--sslPEMKeyFile"
-          - "/etc/mongodb-secret/mongodb.pem"
-          - "--sslAllowConnectionsWithoutCertificates"
-          - "--sslAllowInvalidCertificates"
-          - "--sslAllowInvalidHostnames"
           - "--config"
           - "/etc/mongodb-config/mongodb.conf"
+{{- if .with_gcs_backups }}
+        securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - SYS_ADMIN
+        lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - >
+                    mkdir -p /mnt/bucket;
+                    apt-get update;
+                    apt-get install rsync curl -y;
+                    echo "deb http://packages.cloud.google.com/apt gcsfuse-xenial main" > /etc/apt/sources.list.d/gcsfuse.list;
+                    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -;
+                    apt-get update;
+                    apt-get install -y gcsfuse;
+
+{{- end }}
         resources:
           requests:
 {{- if ne .resources.requests.memory "" }}
@@ -111,6 +120,12 @@ spec:
             cpu: "{{ .resources.limits.cpu }}"
 {{- end }}
         env:
+{{- if .with_gcs_backups }}
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /etc/google-credentials
+        - name: STORAGE_BUCKET
+          value: {{ .gcsfuse.storage_bucket }}
+{{- end }}
         - name: MONGO_INITDB_ROOT_USERNAME
           value: "{{.mongodb.rootusername}}"
         - name: MONGO_INITDB_ROOT_PASSWORD
@@ -129,6 +144,14 @@ spec:
           mountPath: /mongotemp
         - name: data
           mountPath: /data/db
+{{- if .with_gcs_backups }}
+        - name: google-credentials
+          mountPath: /etc/google-credentials
+          subPath: google-credentials
+        - name: mongodb-config
+          mountPath: /etc/make_backup.sh
+          subPath: make_backup.sh
+{{- end }}
       volumes:
       - name: tempvol
         emptyDir: {}
@@ -141,6 +164,12 @@ spec:
       - name: mongodb-config
         configMap:
           name: mongodb-config
+          defaultMode: 0744
+{{- if .with_gcs_backups }}
+      - name: google-credentials
+        secret:
+          secretName: google-credentials
+{{- end }}
   volumeClaimTemplates:
   - metadata:
       name: data

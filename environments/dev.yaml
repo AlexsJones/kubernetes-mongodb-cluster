@@ -1,11 +1,14 @@
 dev: "true"
-image: "mongo"
+image: "mongo:4.0"
 namespace: "mongodb"
 replica: "3"
 affinity_key: "app"
 affinity_selector: "mongodb"
 storage_size: "1Gi"
 storage_class: "fast-retain"
+with_gcs_backups: "true"
+gcsfuse:
+  storage_bucket: mongodb-gcs-backups
 resources:
   requests:
     cpu: "0.2m"

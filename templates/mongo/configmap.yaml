@@ -20,3 +20,25 @@ data:
     # Security
     security:
       keyFile: /mongotemp/rs-key
+    net:
+      bindIp: 0.0.0.0
+      port: 27017
+      ssl:
+        allowInvalidHostnames: true
+        allowInvalidCertificates: true
+        allowConnectionsWithoutCertificates: true
+        PEMKeyFile: /etc/mongodb-secret/mongodb.pem
+        mode: preferSSL
+    replication:
+        replSetName: {{.mongodb.replsetname}}
+  make_backup.sh: |
+    gcsfuse -o nonempty,allow_other,rw mongodb-gcs-backups /mnt/bucket;
+    MONGO_IS_PRIMARY=`mongo localhost:27017 --quiet --eval 'db.isMaster().ismaster'`;
+    if [ "${MONGO_IS_PRIMARY}" == "true" ]; then
+      echo "No backups will be taken against a primary node, exiting!"
+      exit 0;
+    fi
+    D=$(/bin/date -u "+%Y%m%d-%H%M%S")
+    mkdir -p /mnt/bucket/$D
+    mkdir -p /mnt/bucket/$D/$HOSTNAME
+    rsync -a --progress --ignore-missing-args --delete-during /data/db /mnt/bucket/$D/$HOSTNAME
