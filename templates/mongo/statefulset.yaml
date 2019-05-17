@@ -54,7 +54,13 @@ spec:
       initContainers:
       - name: copy-ro-scripts
         image: busybox
-        command: ['sh', '-c', 'cp /tmp/rs-key /mongotemp/rs-key && chmod 0400 /mongotemp/rs-key && chown 999:999 /mongotemp/rs-key']
+        command:
+          - /bin/sh
+          - -c
+          - >
+            cp /tmp/rs-key /mongotemp/rs-key;
+            chmod 0400 /mongotemp/rs-key;
+            chown 999:999 /mongotemp/rs-key;
         volumeMounts:
         - name: mongodb-rs-key
           mountPath: /tmp/rs-key
@@ -98,17 +104,11 @@ spec:
           - -c
           - >
 {{- if .with_gcs_backups }}
-            apt-get update && apt-get install rsync curl -y;
-            echo "deb http://packages.cloud.google.com/apt gcsfuse-stretch main" > /etc/apt/sources.list.d/gcsfuse.list;
-            curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - > /dev/null;
-            apt-get update && apt-get install --yes gcsfuse fuse;
-            # Mount folder
-            mkdir -p /mnt/bucket;
-            gcsfuse -o nonempty,allow_other,rw $STORAGE_BUCKET /mnt/bucket"
-            # Create backup as a test
-            /etc/configure_backups.sh &
+            /etc/setup.sh
 {{- end }}
-            mongod --wiredTigerCacheSizeGB 1.5 --bind_ip 0.0.0.0 --replSet {{.mongodb.replsetname}} --smallfiles --noprealloc --auth --sslMode {{.mongodb.sslmode}} --sslPEMKeyFile /etc/mongodb-secret/mongodb.pem --sslAllowConnectionsWithoutCertificates --sslAllowInvalidCertificates --config /etc/mongodb-config/mongodb.conf
+            mongod --wiredTigerCacheSizeGB 1.5 --bind_ip 0.0.0.0 --replSet {{.mongodb.replsetname}} \
+            --smallfiles --noprealloc --auth --sslMode {{.mongodb.sslmode}} --sslPEMKeyFile /etc/mongodb-secret/mongodb.pem \
+            --sslAllowConnectionsWithoutCertificates --sslAllowInvalidCertificates --config /etc/mongodb-config/mongodb.conf
         resources:
           requests:
 {{- if ne .resources.requests.memory "" }}
@@ -139,9 +139,6 @@ spec:
         - name: mongo
           containerPort: 27017
         volumeMounts:
-        - name: mongodb-config
-          mountPath: /etc/configure_backups.sh
-          subPath: configure_backups.sh
         - name: mongodb-secret
           mountPath: /etc/mongodb-secret/mongodb.pem
           subPath: mongodb.pem
@@ -153,6 +150,12 @@ spec:
         - name: data
           mountPath: /data/db
 {{- if .with_gcs_backups }}
+        - name: mongodb-config
+          mountPath: /etc/setup.sh
+          subPath: setup.sh
+        - name: mongodb-config
+          mountPath: /etc/configure_backups.sh
+          subPath: configure_backups.sh
         - name: google-credentials
           mountPath: /etc/google-credentials
           subPath: google-credentials
@@ -169,6 +172,7 @@ spec:
       - name: mongodb-config
         configMap:
           name: mongodb-config
+          defaultMode: 0744
 {{- if .with_gcs_backups }}
       - name: google-credentials
         secret:

@@ -4,6 +4,23 @@ metadata:
   namespace: mongodb
 apiVersion: v1
 data:
+  setup.sh: |
+    err_report() {
+      echo "errexit on line $(caller)" >&2
+    }
+    trap err_report ERR
+    apt-get update;
+    apt-get install rsync curl -y;
+    echo "deb http://packages.cloud.google.com/apt gcsfuse-xenial main" > /etc/apt/sources.list.d/gcsfuse.list;
+    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -;
+    apt-get update;
+    apt-get install -y gcsfuse;
+    # Mount folder
+    mkdir -p /mnt/bucket;
+    gcsfuse -o nonempty,allow_other,rw $STORAGE_BUCKET /mnt/bucket
+    # Create Job
+    sleep 3000
+    /etc/configure_backups.sh
   configure_backups.sh: |
     MONGO_IS_PRIMARY=`mongo localhost:27017 --quiet --eval 'db.isMaster().ismaster'`;
     if [ "${MONGO_IS_PRIMARY}" == "true" ]; then
