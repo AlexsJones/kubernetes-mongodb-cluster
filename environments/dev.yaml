@@ -1,5 +1,5 @@
 dev: "true"
-image: "mongo"
+image: "mongo:3.6"
 namespace: "mongodb"
 replica: "3"
 affinity_key: "app"

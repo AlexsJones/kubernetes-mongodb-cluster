@@ -20,3 +20,14 @@ data:
     # Security
     security:
       keyFile: /mongotemp/rs-key
+    net:
+      bindIp: 0.0.0.0
+      port: 27017
+      ssl:
+        allowInvalidHostnames: true
+        allowInvalidCertificates: true
+        allowConnectionsWithoutCertificates: true
+        PEMKeyFile: /etc/mongodb-secret/mongodb.pem
+        mode: preferSSL
+    replication:
+        replSetName: {{.mongodb.replsetname}}

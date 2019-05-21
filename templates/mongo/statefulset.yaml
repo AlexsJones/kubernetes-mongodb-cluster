@@ -53,46 +53,46 @@ spec:
           mountPath: /mongotemp
       containers:
       - name: mongo-sidecar
-        image: tibbar/mongo-k8s-sidecar
+        image: morphy/k8s-mongo-sidecar:latest
         env:
-        - name: MONGO_SIDECAR_POD_LABELS
+          #https://github.com/morphy2k/k8s-mongo-sidecar
+        - name: KUBERNETES_POD_LABELS
           value: "app=mongodb,role=services,component=mongodb"
-        - name: MONGODB_USERNAME
-          value: "{{.mongodb.rootusername}}"
-        - name: MONGODB_PASSWORD
-          value: "{{.mongodb.rootpassword}}"
-        - name: KUBERNETES_MONGO_SERVICE_NAME
+        - name: KUBERNETES_SERVICE_NAME
           value: "mongodb"
+        - name: KUBERNETES_NAMESPACE
+          value: "{{.namespace}}"
+        - name: MONGO_USERNAME
+          value: "{{.mongodb.rootusername}}"
+        - name: MONGO_PASSWORD
+          value: "{{.mongodb.rootpassword}}"
         - name: MONGO_SSL_ENABLED
           value: "{{.mongosidecar.sslenabled}}"
         - name: MONGO_SSL_ALLOW_INVALID_CERTIFICATES
           value: "true"
         - name: MONGO_SSL_ALLOW_INVALID_HOSTNAMES
           value: "true"
-        - name: MONGODB_DATABASE
-          value: "admin"
-        - name: KUBE_NAMESPACE
-          value: "{{.namespace}}"
+        - name: MONGO_SSL_CERT
+          value: "/etc/mongodb-secret/mongodb.pem"
+        - name: MONGO_SSL_KEY
+          value: "/mongotemp/rs-key"
+        volumeMounts:
+        - name: mongodb-secret
+          mountPath: /etc/mongodb-secret/mongodb.pem
+          subPath: mongodb.pem
+        - name: mongodb-rs-key
+          mountPath: /etc/mongodb-secret/rs-key
+          subPath: rs-key
+
       - name: mongod
         image: {{.image}}
         args:
           - "mongod"
           - "--wiredTigerCacheSizeGB"
           - "1.5"
-          - "--bind_ip"
-          - "0.0.0.0"
-          - "--replSet"
-          - "{{.mongodb.replsetname}}"
           - "--smallfiles"
           - "--noprealloc"
           - "--auth"
-          - "--sslMode"
-          - "{{.mongodb.sslmode}}"
-          - "--sslPEMKeyFile"
-          - "/etc/mongodb-secret/mongodb.pem"
-          - "--sslAllowConnectionsWithoutCertificates"
-          - "--sslAllowInvalidCertificates"
-          - "--sslAllowInvalidHostnames"
           - "--config"
           - "/etc/mongodb-config/mongodb.conf"
         resources:
@@ -101,7 +101,7 @@ spec:
             memory: "{{ .resources.requests.memory }}"
 {{- end }}
 {{- if ne .resources.requests.cpu "" }}
-            cpu: "{{ .resources.requests.cpu }}"
+            cpu: "{{ .resources.requests.cpu }}"The command '/bin/sh -c GO111MODULE=on go build -ldflags="-s -w -X 'main.version=$(cat VERSION)' -X 'main.revision=$(git rev-parse --short HEAD)' -X 'main.buildtime=$(date -u +%Y-%m-%d.%H:%M:%S)'" -o /gravitywell &&     rm -rf ${GOPATH}' returned a non-zero code: 1
 {{- end }}
           limits:
 {{- if ne .resources.limits.memory "" }}
@@ -122,6 +122,9 @@ spec:
         - name: mongodb-secret
           mountPath: /etc/mongodb-secret/mongodb.pem
           subPath: mongodb.pem
+        - name: mongodb-rs-key
+          mountPath: /etc/mongodb-secret/rs-key
+          subPath: rs-key
         - name: mongodb-config
           mountPath: /etc/mongodb-config/mongodb.conf
           subPath: mongodb.conf

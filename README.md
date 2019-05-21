@@ -2,6 +2,8 @@
 
 A scalable kubernetes cluster for SSL secured mongodb.
 
+*Updated to support 3.6/4.0 with a better sidecar implementation*
+
 ![issues](https://img.shields.io/github/issues/AlexsJones/kubernetes-mongodb-cluster.svg)
 ![forks](https://img.shields.io/github/forks/AlexsJones/kubernetes-mongodb-cluster.svg)
 ![stars](https://img.shields.io/github/stars/AlexsJones/kubernetes-mongodb-cluster.svg)
@@ -43,14 +45,9 @@ kubectl apply -f deployment/mongo
 The mongo-job runs the following command
 
 ```
-kubectl exec -it mongod-0 -c mongod -- mongo --host 127.0.0.1:27017 --authenticationDatabase admin --username root --password root --eval "rs.status()"
+kubectl exec -it mongod-0 -n mongodb -c mongod -- mongo --host 127.0.0.1:27017 --authenticationDatabase admin --username root --password root --eval "rs.status()"
 ```
 
-Execute the job with
-
-```
-kubectl apply -f deployment/utils/job.yaml
-```
 
 ## Configuration
 - Primary mongodb configuration is within `templates/mongo/configmap.yaml` for wiredtiger settings and log paths
