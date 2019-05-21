@@ -32,7 +32,7 @@ data:
     replication:
         replSetName: {{.mongodb.replsetname}}
   make_backup.sh: |
-    gcsfuse -o nonempty,allow_other,rw mongodb-gcs-backups /mnt/bucket;
+    gcsfuse -o nonempty,allow_other,rw $STORAGE_BUCKET /mnt/bucket;
     MONGO_IS_PRIMARY=`mongo localhost:27017 --quiet --eval 'db.isMaster().ismaster'`;
     if [ "${MONGO_IS_PRIMARY}" == "true" ]; then
       echo "No backups will be taken against a primary node, exiting!"

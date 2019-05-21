@@ -1,8 +1,10 @@
 # Usage:
 # vortex --template ./environments/default.yaml --output temporalenv \
 #   --set="namespace=mymongo" \
-#   --set="affinitykey=node-type" \
-#   --set="affinityselector=mongodb" \
+#   --set="nodeaffinitykey=node-type" \
+#   --set="nodeaffinityselector=mongodb" \
+#   --set="podaffinitykey=app" \
+#   --set="podaffinityselector=mongodb" \
 #   --set="storageclass=fast-retain" \
 #   --set="image=mongo:4" \
 #   --set="storagesize=500Gi" \
@@ -14,16 +16,26 @@
 #   --set="rootpwd=R0!ot" \
 #   --set="replicaset=MyReplSet" \
 #   --set="sslmode=allowSSL" \
-#   --set="sslenabled=false"
+#   --set="sslenabled=false" \
+#   --set="with_gcs_backups=true" \
+#   --set="gcs_bucket=mongodb-gcs-backups"
 
 dev: "true"
 image: "{{.image}}"
 namespace: "{{.namespace}}"
 replica: "3"
-affinity_key: "{{.affinitykey}}"
-affinity_selector: "{{.affinityselector}}"
+with_affinity: "true"
+# These wll not apply  -----------------
+pod_affinity_key: "{{.podaffinitykey}}"
+pod_affinity_selector: "{{.podaffinityselector}}"
+node_affinity_key: "{{.nodeaffinitykey}}"
+node_affinity_selector: "{{.nodeaffinityselector}}"
+# --------------------------------------
 storage_size: "{{.storagesize}}"
-storage_class: "{{.storageclass}}"
+storage_class: "{{.storageclass}}" #local-scsi can be selected on GKE with the ./templates/gke-storage applied
+with_gcs_backups: "{{.with_gcs_backups}}"
+gcsfuse:
+  storage_bucket: "{{.gcs_bucket}}"
 resources:
   requests:
     cpu: "{{.cpurequest}}"
