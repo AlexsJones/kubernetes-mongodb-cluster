@@ -101,7 +101,7 @@ spec:
             memory: "{{ .resources.requests.memory }}"
 {{- end }}
 {{- if ne .resources.requests.cpu "" }}
-            cpu: "{{ .resources.requests.cpu }}"The command '/bin/sh -c GO111MODULE=on go build -ldflags="-s -w -X 'main.version=$(cat VERSION)' -X 'main.revision=$(git rev-parse --short HEAD)' -X 'main.buildtime=$(date -u +%Y-%m-%d.%H:%M:%S)'" -o /gravitywell &&     rm -rf ${GOPATH}' returned a non-zero code: 1
+            cpu: "{{ .resources.requests.cpu }}"
 {{- end }}
           limits:
 {{- if ne .resources.limits.memory "" }}
