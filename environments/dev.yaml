@@ -2,8 +2,11 @@ dev: "true"
 image: "mongo:3.6"
 namespace: "mongodb"
 replica: "3"
-affinity_key: "app"
-affinity_selector: "mongodb"
+# with_affinity: true
+# node_affinity_key: "node-type"
+# node_affinity_selector: "mongodb"
+# pod_anti_affinity_key: "app"
+# pod_anti_affinity_selector: "mongodb"
 storage_size: "1Gi"
 storage_class: "fast-retain"
 resources:

@@ -17,27 +17,27 @@
 #   --set="sslenabled=false"
 
 dev: "true"
-image: "{{.image}}"
-namespace: "{{.namespace}}"
+image: "mongo:3.6-xenial"
+namespace: "mongodb"
 replica: "3"
 with_affinity: true
-node_affinity_selector: "{{.affinityselector}}"
-node_affinity_key: "{{.affinitykey}}"
+node_affinity_selector: "node-type"
+node_affinity_key: "mongodb"
 pod_anti_affinity_selector: "app"
 pod_anti_affinity_key: "mongodb"
-storage_size: "{{.storagesize}}"
-storage_class: "{{.storageclass}}"
+storage_size: "500Gi"
+storage_class: "fast-retain"
 resources:
   requests:
-    cpu: "{{.cpurequest}}"
-    memory: "{{.memoryrequest}}"
+    cpu: "2"
+    memory: "500Mi"
   limits:
-    cpu: "{{.cpulimit}}"
-    memory: "{{.memorylimit}}"
+    cpu: "4"
+    memory: "30000Mi"
 mongodb:
-  rootusername: "{{.rootuser}}"
-  rootpassword: "{{.rootpwd}}"
-  replsetname: "{{.replicaset}}"
-  sslmode: "{{.sslmode}}"
+  rootusername: "root"
+  rootpassword: "root"
+  replsetname: "MainRepSet"
+  sslmode: "allowSSL"
 mongosidecar:
-  sslenabled: "{{.sslenabled}}"
+  sslenabled: "false"

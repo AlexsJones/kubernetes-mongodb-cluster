@@ -24,20 +24,28 @@ spec:
         role: services
     spec:
       serviceAccount: kubernetes-mongodb-service-account
-{{- if not .dev }}
-{{- if .affinity_key }}
+{{- if .with_affinity }}
+{{- if .node_affinity_selector }}
       affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: {{.node_affinity_key}}
+                operator: In
+                values:
+                - {{.node_affinity_selector}}
+{{- if .pod_anti_affinity_selector }}
         podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
                 matchExpressions:
-                - key: {{.affinity_key}}
-                  operator: In
-                  values:
-                  - {{.affinity_selector}}
-              topologyKey: kubernetes.io/hostname
+                  - key: {{.pod_anti_affinity_key}}
+                    operator: In
+                    values:
+                    - {{.pod_anti_affinity_selector}}
+              topologyKey: "kubernetes.io/hostname"
+{{- end }}
 {{- end }}
 {{- end }}
       terminationGracePeriodSeconds: 10
