@@ -27,15 +27,13 @@ Influenced and inspired by:
 ## Dependencies
 
 ```
-- golang
-- go get github.com/AlexsJones/vortex
 - google cloud platform (for a few annotations e.g. load balancer and pvc)
 ```
 ## Get me started
 
 ```
 kubectl create ns mongodb
-./build_environment.sh dev
+docker run -v $PWD:/tmp tibbar/vortex:v1 -template /tmp/templates -output /tmp/deployment -varpath /tmp/environments/dev.yaml
 ./generate_pem.sh <SomePassword>
 kubectl apply -f deployment/mongo
 ```
